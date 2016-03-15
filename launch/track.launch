@@ -1,0 +1,8 @@
+<launch>
+   <rosparam command="load" file="$(find object_detection)/param/parametri.yaml"/>
+	<node name="track_marker" pkg="object_detection" type="track_marker" output="screen"/>
+</launch>
+
+
+<!-- args="$(find object_detection)/param/camera_calibration.yml -->
+
