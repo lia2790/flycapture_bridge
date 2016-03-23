@@ -2,132 +2,170 @@
 #include <image_transport/image_transport.h> // includes everything we need to publish and subscribe to images.
 
 //These headers will allow us to display images using OpenCV's simple GUI capabilities.
- #include <opencv2/highgui/highgui.hpp>
- #include <cv_bridge/cv_bridge.h>
-   
-/*
-This is the callback function that will get called when a new image has arrived on the "camera/image" topic. Although the image may have been sent in some arbitrary transport-specific message type, notice that the callback need only handle the normal sensor_msgs/Image type. All image encoding/decoding is handled automagically for you.
-
-The body of the callback. We convert the ROS image message to an OpenCV image with BGR pixel encoding, then show it in a display window.
+#include <opencv2/highgui/highgui.hpp>
+#include <cv_bridge/cv_bridge.h>
 
 
-*/
+using namespace std;
 
- void imageCallback(const sensor_msgs::ImageConstPtr& msg)
- {
+
+
+
+
+void imageCallback(const sensor_msgs::ImageConstPtr& image_msg)
+{
+	cout<<"8"<<endl;
+
+
+	//per vedere solo se al ricevitore mi arriva l 'immagine corretta
     try
     {
-     cv::imshow("view", cv_bridge::toCvShare(msg, "rgb8")->image);
-     cv::waitKey(30);
+    	 cv::imshow("view", cv_bridge::toCvShare(image_msg, "rgb8")->image);
+    	 cv::waitKey(30);
+
+		 cout<<"9"<<endl;
     }
     catch (cv_bridge::Exception& e)
     {
-       ROS_ERROR("Could not convert from '%s' to 'bgr8'.", msg->encoding.c_str());
-     }
- }
-  
+       ROS_ERROR("Could not convert from '%s' to 'bgr8'.", image_msg->encoding.c_str());
+    }
+
+	cout<<"10"<<endl;
+
+//------------ALVAR TRACKING MARKER---->copiato uguale da github
+
+}
+	
+
 int main(int argc, char **argv)
 {
-   ros::init(argc, argv, "image_listener");
-	ros::NodeHandle nh;
+	cout<<"0"<<endl;
+
+	//inizializzazione nodo ros
+   ros::init(argc, argv, "ar_track_alvar");
+	ros::NodeHandle n;
+
+	cout<<"1"<<endl;
+
+	//for only view
 	cv::namedWindow("view");
 	cv::startWindowThread();
-	image_transport::ImageTransport it(nh);
-	image_transport::Subscriber sub = it.subscribe("camera/image", 1, imageCallback);
-	ros::spin();
+
+
+
+	cout<<"2"<<endl;
+
+//	marker_detector.SetMarkerSize(marker_size);
+
+	cout<<"2,1"<<endl;
+
+//	cam = new Camera(n, cam_info_topic); //cam_info_topic è il nome del topic (stringa)
+	//dal quale prelevare le info necessarie per inizializzare la camera coi suoi valori intrinseci 
+	//non è necessario fare subscriber perchè c'è già dentro alla classe camera, 
+	//quindi tu passi semplicemente la stringa ed è tutto pronto
+	//basta che sul topic dal quale prelevare il messaggio ci sia la corretta informazione
+	//sul buffer viaggia un pacchetto del tipo (messaggio)
+	//sensor_msgs::CameraInfo
+	//gestione del topic ---> ROS IMAGE TRANSPORT
+	//in CAMERA-H
+	//95   std::string cameraInfoTopic_;
+	//96   sensor_msgs::CameraInfo cam_info_;
+	//97   void camInfoCallback (const sensor_msgs::CameraInfoConstPtr &);
+	//callback del subscriber
+
+
+	cout<<"2,2"<<endl;
+
+
+
+
+
+/*
+	//strutture necessarie per il nodo ROSALVAR
+	tf_listener = new tf::TransformListener(n);
+	tf_broadcaster = new tf::TransformBroadcaster();
+	arMarkerPub_ = n.advertise<ar_track_alvar_msgs::AlvarMarkers>("ar_pose_marker", 0);
+	rvizMarkerPub_ = n.advertise<visualization_msgs::Marker>("visualization_marker", 0);
+*/
+	cout<<"3"<<endl;	
+
+	
+
+
+
+	//prelevare dal buffer l'immagine <-> la matrice 
+/*	image_transport::ImageTransport it(n);
+	image_transport::Subscriber sub = it.subscribe(cam_image_topic, 1, imageCallback);
+*/
+	
+
+
+NodeTrack NT("ar_track_alvar");
+
+	
+	cout<<"5"<<endl;
+
+	//??for only show 
+	//ros::spin();//fa un while dentro
 	cv::destroyWindow("view");
+
+	cout<<"6"<<endl;
+
+	
+	ros::Rate rate(100);
+
+
+
+	while(ros::ok())
+	{
+		cout<<"7"<<endl;
+		ros::spinOnce();//chiede "al ros" cosa c'è da fare
+		rate.sleep();
+	}
 }
 
 
 
-//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%5
-//		
-//		CONVERTING 
-//
-//---->>>>>	ROS image messages to OpenCV images
-//
-//		CvBridge defines a CvImage type containing an OpenCV image, 
-//		its encoding and a ROS header. 
-//		CvImage contains exactly the information sensor_msgs/Image does, 
-//		so we can convert either representation to the other. CvImage class format:
 
 
-/*
+//----------> qui mi serve una funzione che mi tiri fuori 
+				// dal pacchetto   ar_track_alvar_msgs::AlvarMarkers arPoseMarkers_;
+				// il pacchetto    sensor_msgs::geometry_msgs
+				//dove quest'ultimo è quello corretto da far viaggiare sul buffer in broadcast
 
-namespace cv_bridge {
 
-class CvImage
-{
-   public:
-   	  std_msgs::Header header;
-        std::string encoding;
-        cv::Mat image;
-    };
- 
- 	typedef boost::shared_ptr<CvImage> CvImagePtr;
-   typedef boost::shared_ptr<CvImage const> CvImageConstPtr;
-
-/*
-When converting a ROS sensor_msgs/Image message into a CvImage, 
-CvBridge recognizes two distinct use cases:
-
-We want to modify the data in-place. 
-We have to make a copy of the ROS message data.
-We won't modify the data. 
-We can safely share the data owned by the ROS message instead of copying.
-CvBridge provides the following functions for converting to CvImage:
-*/
+		//sendTransform(const geometry_msgs::TransformStamped & transform);
 
 
 
-/*
-toCvCopy creates a copy of the image data from the ROS message,
- even when the source and destination encodings match. 
-However, you are free to modify the returned CvImage.
+		//stampo la posa come broadcaster sul topic in uscita
+		//stampo un geometry message_msgs
 
 
 
-	// Case 1: Always copy, returning a mutable CvImage
-   CvImagePtr toCvCopy(const sensor_msgs::ImageConstPtr& source,
-                        const std::string& encoding = std::string());
-   CvImagePtr toCvCopy(const sensor_msgs::Image& source,
-                        const std::string& encoding = std::string());
-    
-
-toCvShare will point the returned cv::Mat at the ROS message data, 
-avoiding a copy, if the source and destination encodings match. 
-As long as you hold a copy of the returned CvImage, 
-the ROS message data will not be freed. If the encodings do not match, 
-it will allocate a new buffer and perform the conversion. 
-You are not permitted to modify the returned CvImage, 
-as it may share data with the ROS image message, 
-which in turn may be shared with other callbacks. 
-Note: the second overload of toCvShare is more convenient 
-when you have a pointer to some other message type 
-(e.g. stereo_msgs/DisparityImage) 
-that contains a sensor_msgs/Image you want to convert.
+  /** \brief Send a StampedTransform 
+   * The stamped data structure includes frame_id, and time, and parent_id already.  */
 
 
-If no encoding (or rather, the empty string) is given, 
-the destination image encoding will be the same as the image message encoding. 
-In this case 
+// -----------------------> void sendTransform(const StampedTransform & transform);
 
-toCvShare is guaranteed to not copy the image data. 
-
- 
-Image encodings can be any one of the following OpenCV image encodings:
+  /** \brief Send a vector of StampedTransforms 
+   * The stamped data structure includes frame_id, and time, and parent_id already.  */
 
 
-   // Case 2: Share if possible, returning a const CvImage
-   CvImageConstPtr toCvShare(const sensor_msgs::ImageConstPtr& source,
-                              const std::string& encoding = std::string());
-   CvImageConstPtr toCvShare(const sensor_msgs::Image& source,
-                             const boost::shared_ptr<void const>& tracked_object,
-                             const std::string& encoding = std::string());
+//  --------------------->   void sendTransform(const std::vector<StampedTransform> & transforms);
+
+  /** \brief Send a TransformStamped message
+   * The stamped data structure includes frame_id, and time, and parent_id already.  */
 
 
-}
+// -------------------------> void sendTransform(const geometry_msgs::TransformStamped & transform);
 
-*/
+  /** \brief Send a vector of TransformStamped messages
+   * The stamped data structure includes frame_id, and time, and parent_id already.  */
 
 
+
+
+ // ---------------------->   void sendTransform(const std::vector<geometry_msgs::TransformStamped> & transforms);*/
+	

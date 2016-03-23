@@ -11,7 +11,7 @@ using namespace std;
 
 class FlyCap	
 {
-public:
+	public:
 
 	FlyCapture2::Error error;
 	Camera *camera;//typeFLYCAP
@@ -22,7 +22,8 @@ public:
 	FlyCap() {camera = new Camera; }
 	~FlyCap() { error = camera->StopCapture();
     				if ( error != PGRERROR_OK ){}
-					camera->Disconnect();delete camera;}
+						camera->Disconnect();
+					delete camera;}
 
 	/*void startVideo();//open camera and start to capture the frame
 	void takeImageFromVideo();//convert a image from FlyCap to OpenCV

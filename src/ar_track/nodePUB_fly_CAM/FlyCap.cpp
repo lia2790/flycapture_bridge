@@ -4,9 +4,15 @@ using namespace std;
 
 void FlyCap::init()
 {
+
 	cout<<"i'm in init in flycap"<<endl;
 
+
+
 	error = camera->Connect(0);//open the stream-video
+
+
+
 
 	if ( error != PGRERROR_OK )
    {    std::cout << "Failed to connect to camera" << std::endl; return;  }  
@@ -28,11 +34,17 @@ void FlyCap::init()
 	cout<<"VideoMode : "<<*pVideo<<" FrameRate : "<<*pFrame<<endl;
 	*/
 
+
+
 	cout<<"preSTART"<<endl;
 
 	error = camera->StartCapture();
 
 	cout<<"postSTART"<<endl;
+
+
+
+
 
    if ( error == PGRERROR_ISOCH_BANDWIDTH_EXCEEDED )
    {    std::cout << "Bandwidth exceeded" << std::endl; return;	}
@@ -57,7 +69,7 @@ void FlyCap::flyRaw()
 		
 		std::cout<<rawImage.GetPixelFormat()<<std::endl;}
 
-		//}
+		
 		if ( error != PGRERROR_OK )
 			std::cout << "capture error" << std::endl;
 }

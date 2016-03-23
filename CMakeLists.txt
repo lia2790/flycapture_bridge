@@ -21,13 +21,16 @@ ENDIF()
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
   roscpp
-  rospy
   roslib
   std_msgs
   message_generation
   geometry_msgs
   image_transport
   cv_bridge
+  tf
+	ar_track_alvar
+	ar_track_alvar_msgs
+	visualization_msgs
 )
 
 #find_package(Boost REQUIRED)
@@ -49,9 +52,6 @@ endif(FLYCAPTURE2)
 
 
 
-FIND_PACKAGE(OpenCV REQUIRED)
-
-
 FIND_PACKAGE(OpenMP REQUIRED)
 if (OPENMP_FOUND)
     set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
@@ -62,6 +62,9 @@ set(SOURCE1 src/ar_track/nodePUB_fly_CAM/publisherROSimage.cpp
 				src/ar_track/nodePUB_fly_CAM/FlyCap.cpp)
 
 set(SOURCE2 src/ar_track/nodeSUB_ar_track_ALVAR/subscribingROSimage.cpp)
+				#src/ar_track/nodeSUB_ar_track_ALVAR/Camera.cpp
+				#src/ar_track/nodeSUB_ar_track_ALVAR/CvTestbed.cpp
+				#src/ar_track/nodeSUB_ar_track_ALVAR/MarkerDetector.cpp)
 
 
 set(SOURCE src/aruco_implement/detection_marker.cpp 
@@ -197,10 +200,10 @@ ADD_EXECUTABLE(ar_track_sub ${SOURCE2})#nome dell'eseguibile
 #TARGET_LINK_LIBRARIES(track_marker ${OpenCV_LIBS} ${catkin_LIBRARIES} ${FLYCAPTURE2})
 
 #ROS pub
-TARGET_LINK_LIBRARIES(fly_cap_pub ${OpenCV_LIBS} ${catkin_LIBRARIES} ${FLYCAPTURE2}) #${Boost_LIBRARIES})
+TARGET_LINK_LIBRARIES(fly_cap_pub ${catkin_LIBRARIES} ${FLYCAPTURE2}) #${Boost_LIBRARIES})
 
 #ROS sub
-TARGET_LINK_LIBRARIES(ar_track_sub ${OpenCV_LIBS} ${catkin_LIBRARIES} )
+TARGET_LINK_LIBRARIES(ar_track_sub ${catkin_LIBRARIES} )
 
 # BUILD SERVICE SERVER
 # %Tag(SRVCLIENT)%
